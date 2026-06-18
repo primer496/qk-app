@@ -3,11 +3,7 @@ class Sport {
   final String name;
   final double caloriesPerHour;
 
-  Sport({
-    required this.id,
-    required this.name,
-    required this.caloriesPerHour,
-  });
+  Sport({required this.id, required this.name, required this.caloriesPerHour});
 
   factory Sport.fromJson(Map<String, dynamic> json) {
     return Sport(
@@ -18,20 +14,6 @@ class Sport {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'calories_per_hour': caloriesPerHour,
-    };
+    return {'id': id, 'name': name, 'calories_per_hour': caloriesPerHour};
   }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Sport &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
 }
