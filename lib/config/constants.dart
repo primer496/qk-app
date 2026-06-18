@@ -6,14 +6,15 @@ class AppConstants {
   static const String appName = '轻康';
 
   // ═══════════════════════════════════════════════════════════
-  // ⚠️ 组长必改：替换为你的 Gitee 用户名
+  // ⚠️ 数据层负责人必改：替换为你的 Gitee 用户名
   // ═══════════════════════════════════════════════════════════
-  static const String _giteeUsername = '你的用户名';
+  static const String _giteeUsername = 'souoycn';
 
   /// Gitee 数据仓库原始文件 URL 前缀
-  /// 角色2上传 JSON 后，此处自动生效
+  /// 使用 giteeusercontent.com CDN 加速访问
+  /// 文件存放在 data/ 子目录下
   static String get dataRepoBaseUrl =>
-      'https://gitee.com/$_giteeUsername/qk-data/raw/main/';
+      'https://raw.giteeusercontent.com/$_giteeUsername/qk-data/raw/master/data/';
 
   /// 食物数据 URL（50种食物营养数据）
   static String get foodsUrl => '${dataRepoBaseUrl}foods.json';
