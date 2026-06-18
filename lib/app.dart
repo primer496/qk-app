@@ -4,7 +4,8 @@ import 'config/routes.dart';
 import 'pages/home/home_page.dart';
 import 'pages/exercise/exercise_placeholder.dart';
 import 'pages/diet/diet_placeholder.dart';
-import 'pages/habit/habit_placeholder.dart';
+import 'pages/habit/habit_page.dart';
+import 'pages/habit/habit_week_view_page.dart';
 import 'pages/knowledge/knowledge_placeholder.dart';
 import 'pages/profile/profile_placeholder.dart';
 
@@ -43,8 +44,8 @@ class QkApp extends StatelessWidget {
       AppRoutes.dietStats: (_) => const DietPlaceholder(title: '饮食统计'),
 
       // ── 习惯打卡（角色6） ──
-      AppRoutes.habit: (_) => const HabitPlaceholder(title: '习惯打卡'),
-      AppRoutes.habitWeekly: (_) => const HabitPlaceholder(title: '周打卡视图'),
+      AppRoutes.habit: (_) => const HabitPage(),
+      AppRoutes.habitWeekly: (_) => const HabitWeekViewPage(),
 
       // ── 健康科普（角色6） ──
       AppRoutes.knowledgeList: (_) => const KnowledgePlaceholder(title: '健康科普'),
@@ -86,7 +87,7 @@ class _MainShellState extends State<MainShell> {
     HomePage(),
     ExercisePlaceholder(title: '运动打卡'),
     DietPlaceholder(title: '饮食记录'),
-    HabitPlaceholder(title: '习惯打卡'),
+    HabitPage(),
     ProfilePlaceholder(title: '个人中心'),
   ];
 

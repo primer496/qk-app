@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import '../../config/constants.dart';
+import '../../services/habit_storage_util.dart';
 
 /// 首页 — 今日健康数据概览（组长负责）
 class HomePage extends StatefulWidget {
@@ -16,8 +17,9 @@ class _HomePageState extends State<HomePage> {
   int _todayExerciseKcal = 0;
   int _todayDietKcal = 0;
 
-  // 习惯完成状态（mock）
-  final List<bool> _habitDone = [true, true, false, true, false];
+  // 习惯完成状态（从本地存储加载）
+  Map<String, bool> _habitStatus = {};
+  int _habitDoneCount = 0;
 
   // 今日推荐科普（mock）
   final Map<String, String> _todayArticle = {
@@ -37,10 +39,13 @@ class _HomePageState extends State<HomePage> {
     // 运动消耗从角色4的方法获取
     // 饮食摄入从角色5的方法获取
     // 习惯进度从角色6的方法获取
+    final habitProgress = await HabitStorageUtil.getTodayHabitProgress();
     setState(() {
       _nickname = '用户';
       _todayExerciseKcal = 320;
       _todayDietKcal = 1580;
+      _habitStatus = Map<String, bool>.from(habitProgress['status'] as Map);
+      _habitDoneCount = habitProgress['doneCount'] as int;
     });
   }
 
@@ -137,45 +142,48 @@ class _HomePageState extends State<HomePage> {
 
   // ─── 2. 习惯打卡进度 ───
   Widget _buildHabitProgress(ThemeData theme) {
-    final habits = AppConstants.presetHabits;
-    final doneCount = _habitDone.where((d) => d).length;
+    final habits = HabitStorageUtil.presetHabits;
+    final doneCount = _habitDoneCount;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('今日习惯', style: theme.textTheme.titleSmall),
-                Text(
-                  '$doneCount / ${habits.length}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.pushNamed(context, AppRoutes.habit).then((_) {
+            _loadUserData();
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('今日习惯', style: theme.textTheme.titleSmall),
+                  Text(
+                    '$doneCount / ${habits.length}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // 进度条
-            LinearProgressIndicator(
-              value: doneCount / habits.length,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            const SizedBox(height: 12),
-            // 习惯图标行
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(habits.length, (i) {
-                final done = _habitDone[i];
-                return GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.habit),
-                  child: Column(
+                ],
+              ),
+              const SizedBox(height: 12),
+              LinearProgressIndicator(
+                value: doneCount / habits.length,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(habits.length, (i) {
+                  final done = _habitStatus[habits[i]['id']] ?? false;
+                  return Column(
                     children: [
                       Container(
                         width: 44,
@@ -203,11 +211,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ],
-                  ),
-                );
-              }),
-            ),
-          ],
+                  );
+                }),
+              ),
+            ],
+          ),
         ),
       ),
     );
