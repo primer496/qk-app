@@ -1,6 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import '../../config/constants.dart';
+import '../../models/article.dart';
+import '../../repository/article_repository.dart';
 import '../../services/exercise_service.dart';
 import '../../services/diet_service.dart';
 import '../../services/habit_storage_util.dart';
@@ -19,10 +22,14 @@ class _HomePageState extends State<HomePage> {
   final ExerciseService _exerciseService = ExerciseService();
   final DietService _dietService = DietService();
 
+  final ArticleRepository _articleRepo = ArticleRepository();
+
   String _nickname = '用户';
   int _avatarIndex = 0;
   int _todayExerciseKcal = 0;
   int _todayDietKcal = 0;
+  int _exerciseGoal = 30;
+  int _dietGoal = 2000;
 
   static const List<IconData> _presetAvatars = [
     Icons.person,
@@ -46,11 +53,8 @@ class _HomePageState extends State<HomePage> {
   Map<String, bool> _habitStatus = {};
   int _habitDoneCount = 0;
 
-  // 今日推荐科普（mock）
-  final Map<String, String> _todayArticle = {
-    'title': '每天走多少步最健康？',
-    'summary': '世界卫生组织建议成年人每天至少进行……',
-  };
+  // 今日推荐科普（远程加载）
+  Article? _todayArticle;
 
   @override
   void initState() {
@@ -79,6 +83,17 @@ class _HomePageState extends State<HomePage> {
 
       final nickname = StorageUtil().getString('profile_nickname');
       final avatarIndex = StorageUtil().getInt('profile_avatar_index');
+      final exerciseGoal = StorageUtil().getInt('goal_exercise_duration');
+      final dietGoal = StorageUtil().getInt('goal_calorie_intake');
+
+      // 远程加载科普文章（取随机一篇）
+      Article? article;
+      try {
+        final articles = await _articleRepo.getArticleList();
+        if (articles.isNotEmpty) {
+          article = articles[Random().nextInt(articles.length)];
+        }
+      } catch (_) {}
 
       setState(() {
         _nickname = nickname ?? '用户';
@@ -90,8 +105,11 @@ class _HomePageState extends State<HomePage> {
             : 0;
         _todayExerciseKcal = exerciseCalories.round();
         _todayDietKcal = dietCalories.round();
+        _exerciseGoal = exerciseGoal ?? 30;
+        _dietGoal = dietGoal ?? 2000;
         _habitStatus = Map<String, bool>.from(habitProgress['status'] as Map);
         _habitDoneCount = habitProgress['doneCount'] as int;
+        _todayArticle = article;
       });
     } catch (e) {
       setState(() {
@@ -290,6 +308,7 @@ class _HomePageState extends State<HomePage> {
               label: '运动消耗',
               value: '$_todayExerciseKcal',
               unit: 'kcal',
+              goal: '目标 ${_exerciseGoal}min',
             ),
           ),
           const SizedBox(width: 12),
@@ -302,6 +321,7 @@ class _HomePageState extends State<HomePage> {
               label: '饮食摄入',
               value: '$_todayDietKcal',
               unit: 'kcal',
+              goal: '目标 $_dietGoal kcal',
             ),
           ),
         ],
@@ -316,6 +336,7 @@ class _HomePageState extends State<HomePage> {
     required String label,
     required String value,
     required String unit,
+    String? goal,
   }) {
     return Card(
       margin: EdgeInsets.zero,
@@ -348,11 +369,24 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                if (goal != null)
+                  Text(
+                    goal,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
@@ -433,13 +467,20 @@ class _HomePageState extends State<HomePage> {
 
   // ─── 5. 今日科普推荐 ───
   Widget _buildArticleCard(ThemeData theme) {
+    final article = _todayArticle;
+    if (article == null) return const SizedBox.shrink();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
         margin: const EdgeInsets.only(top: 6),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => Navigator.pushNamed(context, AppRoutes.knowledgeList),
+          onTap: () => Navigator.pushNamed(
+            context,
+            AppRoutes.knowledgeDetail,
+            arguments: article,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -469,7 +510,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _todayArticle['title']!,
+                        article.title,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -478,12 +519,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _todayArticle['summary']!,
+                        article.publishTime,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
