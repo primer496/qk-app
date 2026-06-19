@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import '../../config/constants.dart';
 import '../../services/exercise_service.dart';
+import '../../services/diet_service.dart';
 
 /// 首页 — 今日健康数据概览（组长负责）
 class HomePage extends StatefulWidget {
@@ -13,6 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ExerciseService _exerciseService = ExerciseService();
+  final DietService _dietService = DietService();
   
   String _nickname = '用户';
   int _todayExerciseKcal = 0;
@@ -35,17 +37,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadUserData() async {
     try {
-      final todayCalories = await _exerciseService.getTodayCaloriesBurned();
+      final exerciseCalories = await _exerciseService.getTodayCaloriesBurned();
+      final dietCalories = await _dietService.getTodayCalories();
       setState(() {
         _nickname = '用户';
-        _todayExerciseKcal = todayCalories.round();
-        _todayDietKcal = 1580;
+        _todayExerciseKcal = exerciseCalories.round();
+        _todayDietKcal = dietCalories.round();
       });
     } catch (e) {
       setState(() {
         _nickname = '用户';
         _todayExerciseKcal = 0;
-        _todayDietKcal = 1580;
+        _todayDietKcal = 0;
       });
     }
   }
