@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'config/theme.dart';
 import 'config/routes.dart';
 import 'pages/home/home_page.dart';
-import 'pages/exercise/exercise_placeholder.dart';
-import 'pages/diet/diet_placeholder.dart';
-import 'pages/habit/habit_page.dart';
-import 'pages/habit/habit_week_view_page.dart';
+import 'pages/exercise/exercise_page.dart';
+import 'pages/exercise/exercise_add_page.dart';
+import 'pages/exercise/exercise_history_page.dart';
+import 'pages/exercise/exercise_stats_page.dart';
+import 'pages/diet/diet_page.dart';
+import 'pages/diet/diet_add_page.dart';
+import 'pages/diet/diet_food_select_page.dart';
+import 'pages/diet/diet_today_page.dart';
+import 'pages/diet/diet_stats_page.dart';
+import 'pages/habit/habit_placeholder.dart';
 import 'pages/knowledge/knowledge_placeholder.dart';
 import 'pages/profile/profile_placeholder.dart';
 
@@ -32,16 +38,15 @@ class QkApp extends StatelessWidget {
       AppRoutes.home: (_) => const MainShell(),
 
       // ── 运动打卡（角色4） ──
-      AppRoutes.exerciseAdd: (_) => const ExercisePlaceholder(title: '添加运动记录'),
-      AppRoutes.exerciseHistory: (_) =>
-          const ExercisePlaceholder(title: '运动历史'),
-      AppRoutes.exerciseStats: (_) => const ExercisePlaceholder(title: '运动统计'),
+      AppRoutes.exerciseAdd: (_) => const ExerciseAddPage(),
+      AppRoutes.exerciseHistory: (_) => const ExerciseHistoryPage(),
+      AppRoutes.exerciseStats: (_) => const ExerciseStatsPage(),
 
       // ── 饮食记录（角色5） ──
-      AppRoutes.dietAdd: (_) => const DietPlaceholder(title: '添加饮食记录'),
-      AppRoutes.dietFoodSelect: (_) => const DietPlaceholder(title: '选择食物'),
-      AppRoutes.dietToday: (_) => const DietPlaceholder(title: '今日饮食'),
-      AppRoutes.dietStats: (_) => const DietPlaceholder(title: '饮食统计'),
+      AppRoutes.dietAdd: (_) => const DietAddPage(),
+      AppRoutes.dietFoodSelect: (_) => const DietFoodSelectPage(),
+      AppRoutes.dietToday: (_) => const DietTodayPage(),
+      AppRoutes.dietStats: (_) => const DietStatsPage(),
 
       // ── 习惯打卡（角色6） ──
       AppRoutes.habit: (_) => const HabitPage(),
@@ -85,9 +90,9 @@ class _MainShellState extends State<MainShell> {
   // 底部5个Tab对应的页面
   final List<Widget> _pages = const [
     HomePage(),
-    ExercisePlaceholder(title: '运动打卡'),
-    DietPlaceholder(title: '饮食记录'),
-    HabitPage(),
+    ExercisePage(),
+    DietPage(),
+    HabitPlaceholder(title: '习惯打卡'),
     ProfilePlaceholder(title: '个人中心'),
   ];
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import '../../config/constants.dart';
+import '../../services/exercise_service.dart';
+import '../../services/diet_service.dart';
 import '../../services/habit_storage_util.dart';
 
 /// 首页 — 今日健康数据概览（组长负责）
@@ -12,7 +14,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // ── Mock 数据（待其他模块交付后替换为真实调用） ──
+  final ExerciseService _exerciseService = ExerciseService();
+  final DietService _dietService = DietService();
+
   String _nickname = '用户';
   int _todayExerciseKcal = 0;
   int _todayDietKcal = 0;
@@ -31,22 +35,36 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserData();
+    ExerciseService.changeNotifier.addListener(_loadUserData);
+    DietService.changeNotifier.addListener(_loadUserData);
+  }
+
+  @override
+  void dispose() {
+    ExerciseService.changeNotifier.removeListener(_loadUserData);
+    DietService.changeNotifier.removeListener(_loadUserData);
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
-    // TODO: 接入真实数据后替换此方法
-    // 昵称从本地存储读取
-    // 运动消耗从角色4的方法获取
-    // 饮食摄入从角色5的方法获取
-    // 习惯进度从角色6的方法获取
-    final habitProgress = await HabitStorageUtil.getTodayHabitProgress();
-    setState(() {
-      _nickname = '用户';
-      _todayExerciseKcal = 320;
-      _todayDietKcal = 1580;
-      _habitStatus = Map<String, bool>.from(habitProgress['status'] as Map);
-      _habitDoneCount = habitProgress['doneCount'] as int;
-    });
+    try {
+      final exerciseCalories = await _exerciseService.getTodayCaloriesBurned();
+      final dietCalories = await _dietService.getTodayCalories();
+      final habitProgress = await HabitStorageUtil.getTodayHabitProgress();
+      setState(() {
+        _nickname = '用户';
+        _todayExerciseKcal = exerciseCalories.round();
+        _todayDietKcal = dietCalories.round();
+        _habitStatus = Map<String, bool>.from(habitProgress['status'] as Map);
+        _habitDoneCount = habitProgress['doneCount'] as int;
+      });
+    } catch (e) {
+      setState(() {
+        _nickname = '用户';
+        _todayExerciseKcal = 0;
+        _todayDietKcal = 0;
+      });
+    }
   }
 
   @override

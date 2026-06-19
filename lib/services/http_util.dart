@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 
 /// 极简网络工具类
@@ -26,16 +27,24 @@ class HttpUtil {
     Map<String, dynamic>? queryParams,
   }) async {
     try {
-      final response = await _dio.get<List<dynamic>>(
+      final response = await _dio.get<String>(
         url,
         queryParameters: queryParams,
+        options: Options(responseType: ResponseType.plain),
       );
       if (response.statusCode == 200 && response.data != null) {
-        return response.data!;
+        var body = response.data!;
+        // 去掉可能的 UTF-8 BOM
+        if (body.codeUnitAt(0) == 0xFEFF) {
+          body = body.substring(1);
+        }
+        final decoded = jsonDecode(body);
+        if (decoded is List) return decoded;
       }
       return [];
     } catch (e) {
-      // 网络异常静默处理，返回空列表
+      print('HttpUtil.getList error: $e');
+      print('  URL: $url');
       return [];
     }
   }
@@ -47,15 +56,22 @@ class HttpUtil {
     Map<String, dynamic>? queryParams,
   }) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
+      final response = await _dio.get<String>(
         url,
         queryParameters: queryParams,
+        options: Options(responseType: ResponseType.plain),
       );
       if (response.statusCode == 200 && response.data != null) {
-        return response.data!;
+        var body = response.data!;
+        if (body.codeUnitAt(0) == 0xFEFF) {
+          body = body.substring(1);
+        }
+        final decoded = jsonDecode(body);
+        if (decoded is Map<String, dynamic>) return decoded;
       }
       return null;
     } catch (e) {
+      print('HttpUtil.getMap error: $e');
       return null;
     }
   }

@@ -1,0 +1,50 @@
+name: PR Checks
+
+# 当有 PR 提交或更新时自动触发
+on:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  analyze:
+    name: Dart Analyze & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: "stable"
+
+      - name: 安装依赖
+        run: flutter pub get
+
+      - name: Dart 静态分析
+        run: flutter analyze
+
+      - name: 检查代码格式
+        run: dart format --set-exit-if-changed lib/
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: "stable"
+
+      - name: 安装依赖
+        run: flutter pub get
+
+      - name: 运行测试
+        run: flutter test
